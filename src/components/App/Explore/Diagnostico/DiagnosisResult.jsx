@@ -1,28 +1,9 @@
-import React from "react";
+export default function DiagnosisResult({ result, onRestart }) {
 
-export default function DiagnosisResult({ image, result, onReset }) {
+  const disease = result?.doenca || "Não identificado"
+  const confidence = result?.confianca || 0
 
-  if (!result) {
-    return null;
-  }
-
-  const getSeverityColor = (severity) => {
-
-    switch (severity) {
-
-      case "Leve":
-        return "#22c55e";
-
-      case "Moderada":
-        return "#f59e0b";
-
-      case "Grave":
-        return "#ef4444";
-
-      default:
-        return "#64748b";
-    }
-  };
+  const percent = (confidence * 100).toFixed(2)
 
   return (
 
@@ -30,115 +11,38 @@ export default function DiagnosisResult({ image, result, onReset }) {
 
       <h2>Resultado do Diagnóstico</h2>
 
-      {/* IMAGEM ANALISADA */}
+      <p><b>Doença detectada:</b> {disease}</p>
 
-      <div className="result-image">
+      <p><b>Confiança da IA:</b> {percent}%</p>
 
-        <img
-          src={image}
-          alt="Folha analisada"
-          style={{
-            width: "100%",
-            maxWidth: "400px",
-            borderRadius: "12px"
-          }}
-        />
+      {result?.probabilidades && (
 
-      </div>
+        <div>
 
-      {/* DOENÇA */}
+          <h3>Outras probabilidades</h3>
 
-      <div className="result-disease">
+          <ul>
 
-        <h3>{result.disease}</h3>
+            {Object.entries(result.probabilidades).map(([name, value]) => (
 
-        <p>
-          Confiança da IA: <strong>{result.confidence}%</strong>
-        </p>
+              <li key={name}>
+                {name}: {(value * 100).toFixed(2)}%
+              </li>
 
-      </div>
+            ))}
 
-      {/* SEVERIDADE */}
-
-      {result.severity && (
-
-        <div
-          style={{
-            background: getSeverityColor(result.severity),
-            padding: "8px 16px",
-            borderRadius: "8px",
-            color: "white",
-            display: "inline-block",
-            marginBottom: "15px"
-          }}
-        >
-          Severidade: {result.severity}
-        </div>
-
-      )}
-
-      {/* DESCRIÇÃO */}
-
-      {result.description && (
-
-        <div className="result-section">
-
-          <h4>Descrição</h4>
-
-          <p>{result.description}</p>
+          </ul>
 
         </div>
 
       )}
 
-      {/* TRATAMENTO */}
-
-      {result.treatment && (
-
-        <div className="result-section">
-
-          <h4>Tratamento</h4>
-
-          <p>{result.treatment}</p>
-
-        </div>
-
-      )}
-
-      {/* PREVENÇÃO */}
-
-      {result.prevention && (
-
-        <div className="result-section">
-
-          <h4>Prevenção</h4>
-
-          <p>{result.prevention}</p>
-
-        </div>
-
-      )}
-
-      {/* BOTÃO */}
-
-      <div style={{ marginTop: "20px" }}>
-
-        <button
-          onClick={onReset}
-          style={{
-            padding: "10px 20px",
-            borderRadius: "8px",
-            border: "none",
-            background: "#16a34a",
-            color: "white",
-            cursor: "pointer"
-          }}
-        >
-          Novo Diagnóstico
-        </button>
-
-      </div>
+      <button onClick={onRestart}>
+        Novo Diagnóstico
+      </button>
 
     </div>
-  );
+
+  )
+
 }

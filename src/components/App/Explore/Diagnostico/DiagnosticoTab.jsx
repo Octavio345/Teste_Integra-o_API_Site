@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react"
+import { useState, useRef } from "react"
 
 import CameraView from "./CameraView"
 import ImagePreview from "./ImagePreview"
@@ -7,67 +7,32 @@ import DiagnosisResult from "./DiagnosisResult"
 
 const API_URL = "https://octaviorezendesilva-api-doencas-soja.hf.space/predict"
 
-export default function DiagnosticoTab({ active }) {
+export default function DiagnosticoTab() {
 
   const videoRef = useRef(null)
   const fileInputRef = useRef(null)
 
   const [step, setStep] = useState("start")
-  const [capturedImage, setCapturedImage] = useState(null)
+  const [image, setImage] = useState(null)
   const [result, setResult] = useState(null)
 
-  const [stream, setStream] = useState(null)
-  const [facingMode, setFacingMode] = useState("environment")
-
-  // ===============================
-  // INICIAR CAMERA
-  // ===============================
+  // =============================
+  // CAMERA
+  // =============================
 
   const startCamera = async () => {
 
     setStep("camera")
 
-    try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" }
+    })
 
-      const mediaStream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode }
-      })
-
-      if (videoRef.current) {
-        videoRef.current.srcObject = mediaStream
-      }
-
-      setStream(mediaStream)
-
-    } catch (err) {
-
-      console.error("Erro ao acessar câmera:", err)
-
-    }
+    videoRef.current.srcObject = stream
 
   }
 
-  // ===============================
-  // TROCAR CAMERA
-  // ===============================
-
-  const switchCamera = () => {
-
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop())
-    }
-
-    setFacingMode(prev =>
-      prev === "environment" ? "user" : "environment"
-    )
-
-  }
-
-  // ===============================
-  // CAPTURAR FOTO
-  // ===============================
-
-  const captureImage = () => {
+  const capturePhoto = () => {
 
     const video = videoRef.current
 
@@ -80,17 +45,31 @@ export default function DiagnosticoTab({ active }) {
 
     ctx.drawImage(video, 0, 0)
 
-    const imageData = canvas.toDataURL("image/jpeg")
+    const data = canvas.toDataURL("image/jpeg")
 
-    setCapturedImage(imageData)
+    setImage(data)
+
+    stopCamera()
 
     setStep("preview")
 
   }
 
-  // ===============================
+  const stopCamera = () => {
+
+    const stream = videoRef.current?.srcObject
+
+    if (!stream) return
+
+    const tracks = stream.getTracks()
+
+    tracks.forEach(track => track.stop())
+
+  }
+
+  // =============================
   // GALERIA
-  // ===============================
+  // =============================
 
   const openGallery = () => {
     fileInputRef.current.click()
@@ -106,7 +85,7 @@ export default function DiagnosticoTab({ active }) {
 
     reader.onload = (e) => {
 
-      setCapturedImage(e.target.result)
+      setImage(e.target.result)
 
       setStep("preview")
 
@@ -116,9 +95,9 @@ export default function DiagnosticoTab({ active }) {
 
   }
 
-  // ===============================
-  // ANALISAR IMAGEM
-  // ===============================
+  // =============================
+  // ANALISE IA
+  // =============================
 
   const analyzeImage = async () => {
 
@@ -126,7 +105,7 @@ export default function DiagnosticoTab({ active }) {
 
     try {
 
-      const blob = await fetch(capturedImage).then(res => res.blob())
+      const blob = await fetch(image).then(res => res.blob())
 
       const formData = new FormData()
 
@@ -145,10 +124,11 @@ export default function DiagnosticoTab({ active }) {
 
     } catch (error) {
 
-      console.error("Erro ao analisar imagem:", error)
+      console.error(error)
 
       setResult({
-        erro: "Erro ao comunicar com a IA"
+        doenca: "Erro ao analisar imagem",
+        confianca: 0
       })
 
       setStep("result")
@@ -157,63 +137,19 @@ export default function DiagnosticoTab({ active }) {
 
   }
 
-  // ===============================
-  // RESET
-  // ===============================
-
   const reset = () => {
 
-    setCapturedImage(null)
+    setImage(null)
+
     setResult(null)
+
     setStep("start")
 
   }
 
-  // ===============================
-  // PROTEÇÃO TROCA DE ABA
-  // ===============================
-
-  useEffect(() => {
-
-    if (!active && videoRef.current?.srcObject) {
-
-      const tracks = videoRef.current.srcObject.getTracks()
-
-      tracks.forEach(track => track.stop())
-
-    }
-
-  }, [active])
-
-  // ===============================
-  // PROTEÇÃO APP MINIMIZADO
-  // ===============================
-
-  useEffect(() => {
-
-    const handleVisibility = () => {
-
-      if (document.hidden && videoRef.current?.srcObject) {
-
-        const tracks = videoRef.current.srcObject.getTracks()
-
-        tracks.forEach(track => track.stop())
-
-      }
-
-    }
-
-    document.addEventListener("visibilitychange", handleVisibility)
-
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibility)
-    }
-
-  }, [])
-
-  // ===============================
+  // =============================
   // RENDER
-  // ===============================
+  // =============================
 
   if (step === "start") {
 
@@ -223,11 +159,11 @@ export default function DiagnosticoTab({ active }) {
 
         <h2>Diagnóstico de Doenças da Soja</h2>
 
-        <button onClick={startCamera} className="diagnostic-btn">
+        <button onClick={startCamera}>
           📷 Tirar foto
         </button>
 
-        <button onClick={openGallery} className="diagnostic-btn">
+        <button onClick={openGallery}>
           🖼 Escolher da galeria
         </button>
 
@@ -251,8 +187,7 @@ export default function DiagnosticoTab({ active }) {
 
       <CameraView
         videoRef={videoRef}
-        onCapture={captureImage}
-        onSwitchCamera={switchCamera}
+        onCapture={capturePhoto}
         onClose={reset}
       />
 
@@ -265,7 +200,7 @@ export default function DiagnosticoTab({ active }) {
     return (
 
       <ImagePreview
-        image={capturedImage}
+        image={image}
         onBack={reset}
         onAnalyze={analyzeImage}
       />
