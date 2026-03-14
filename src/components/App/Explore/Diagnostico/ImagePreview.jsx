@@ -1,23 +1,25 @@
-export default function CameraView({ videoRef, onCapture, onClose }) {
+export default function ImagePreview({ image, onBack, onAnalyze }) {
 
   return (
 
-    <div className="camera-view">
+    <div className="preview-container">
 
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
+      <h2>Pré-visualização</h2>
+
+      <img
+        src={image}
+        alt="Imagem selecionada"
+        className="preview-image"
       />
 
-      <div className="camera-buttons">
+      <div className="preview-actions">
 
-        <button onClick={onCapture}>
-          📸 Capturar
+        <button className="btn back" onClick={onBack}>
+          🔄 Nova Imagem
         </button>
 
-        <button onClick={onClose}>
-          Cancelar
+        <button className="btn analyze" onClick={onAnalyze}>
+          🤖 Analisar com IA
         </button>
 
       </div>
@@ -25,5 +27,4 @@ export default function CameraView({ videoRef, onCapture, onClose }) {
     </div>
 
   )
-
 }

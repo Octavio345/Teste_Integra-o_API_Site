@@ -7,42 +7,45 @@ export default function DiagnosisResult({ result, onRestart }) {
 
   return (
 
-    <div className="diagnosis-result">
+    <div className="result-container">
 
       <h2>Resultado do Diagnóstico</h2>
 
-      <p><b>Doença detectada:</b> {disease}</p>
+      <p className="result-disease">
+        🌱 {disease.replaceAll("_"," ")}
+      </p>
 
-      <p><b>Confiança da IA:</b> {percent}%</p>
+      <p className="result-confidence">
+        Confiança da IA: {percent}%
+      </p>
 
       {result?.probabilidades && (
 
-        <div>
+        <div className="probabilities">
 
-          <h3>Outras probabilidades</h3>
+          <h3>Probabilidades</h3>
 
-          <ul>
+          {Object.entries(result.probabilidades).map(([name, value]) => (
 
-            {Object.entries(result.probabilidades).map(([name, value]) => (
+            <div key={name} className="probability-item">
 
-              <li key={name}>
-                {name}: {(value * 100).toFixed(2)}%
-              </li>
+              <span>{name.replaceAll("_"," ")}</span>
 
-            ))}
+              <span>{(value * 100).toFixed(1)}%</span>
 
-          </ul>
+            </div>
+
+          ))}
 
         </div>
 
       )}
 
-      <button onClick={onRestart}>
+      <button className="btn restart" onClick={onRestart}>
         Novo Diagnóstico
       </button>
 
     </div>
 
   )
-
 }

@@ -1,22 +1,23 @@
-export default function CameraView({ videoRef, onCapture, onClose }) {
+export default function CameraView({ videoRef, onCapture, onCancel }) {
 
   return (
 
-    <div className="camera-view">
+    <div className="camera-container">
 
       <video
         ref={videoRef}
         autoPlay
         playsInline
+        className="camera-video"
       />
 
-      <div className="camera-buttons">
+      <div className="camera-actions">
 
-        <button onClick={onCapture}>
+        <button className="btn capture" onClick={onCapture}>
           📸 Capturar
         </button>
 
-        <button onClick={onClose}>
+        <button className="btn cancel" onClick={onCancel}>
           Cancelar
         </button>
 
@@ -25,5 +26,4 @@ export default function CameraView({ videoRef, onCapture, onClose }) {
     </div>
 
   )
-
 }

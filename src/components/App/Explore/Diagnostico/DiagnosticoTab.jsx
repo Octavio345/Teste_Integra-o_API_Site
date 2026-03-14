@@ -1,9 +1,9 @@
 import { useState, useRef } from "react"
-
 import CameraView from "./CameraView"
 import ImagePreview from "./ImagePreview"
 import AnalysisLoader from "./AnalysisLoader"
 import DiagnosisResult from "./DiagnosisResult"
+import "../../../../styles/App/Diagnostico.css"
 
 const API_URL = "https://octaviorezendesilva-api-doencas-soja.hf.space/predict"
 
@@ -16,10 +16,6 @@ export default function DiagnosticoTab() {
   const [image, setImage] = useState(null)
   const [result, setResult] = useState(null)
 
-  // =============================
-  // CAMERA
-  // =============================
-
   const startCamera = async () => {
 
     setStep("camera")
@@ -29,7 +25,14 @@ export default function DiagnosticoTab() {
     })
 
     videoRef.current.srcObject = stream
+  }
 
+  const stopCamera = () => {
+
+    const stream = videoRef.current?.srcObject
+    if (!stream) return
+
+    stream.getTracks().forEach(track => track.stop())
   }
 
   const capturePhoto = () => {
@@ -42,7 +45,6 @@ export default function DiagnosticoTab() {
     canvas.height = video.videoHeight
 
     const ctx = canvas.getContext("2d")
-
     ctx.drawImage(video, 0, 0)
 
     const data = canvas.toDataURL("image/jpeg")
@@ -52,24 +54,7 @@ export default function DiagnosticoTab() {
     stopCamera()
 
     setStep("preview")
-
   }
-
-  const stopCamera = () => {
-
-    const stream = videoRef.current?.srcObject
-
-    if (!stream) return
-
-    const tracks = stream.getTracks()
-
-    tracks.forEach(track => track.stop())
-
-  }
-
-  // =============================
-  // GALERIA
-  // =============================
 
   const openGallery = () => {
     fileInputRef.current.click()
@@ -78,26 +63,17 @@ export default function DiagnosticoTab() {
   const handleGalleryImage = (event) => {
 
     const file = event.target.files[0]
-
     if (!file) return
 
     const reader = new FileReader()
 
     reader.onload = (e) => {
-
       setImage(e.target.result)
-
       setStep("preview")
-
     }
 
     reader.readAsDataURL(file)
-
   }
-
-  // =============================
-  // ANALISE IA
-  // =============================
 
   const analyzeImage = async () => {
 
@@ -122,9 +98,9 @@ export default function DiagnosticoTab() {
 
       setStep("result")
 
-    } catch (error) {
+    } catch (err) {
 
-      console.error(error)
+      console.error(err)
 
       setResult({
         doenca: "Erro ao analisar imagem",
@@ -132,39 +108,27 @@ export default function DiagnosticoTab() {
       })
 
       setStep("result")
-
     }
-
   }
 
   const reset = () => {
-
     setImage(null)
-
     setResult(null)
-
     setStep("start")
-
   }
 
-  // =============================
-  // RENDER
-  // =============================
-
   if (step === "start") {
-
     return (
+      <div className="diagnostic-container">
 
-      <div className="diagnostic-start">
+        <h2 className="diagnostic-title">Diagnóstico de Doenças da Soja</h2>
 
-        <h2>Diagnóstico de Doenças da Soja</h2>
-
-        <button onClick={startCamera}>
-          📷 Tirar foto
+        <button className="diagnostic-btn camera" onClick={startCamera}>
+          📷 Tirar Foto
         </button>
 
-        <button onClick={openGallery}>
-          🖼 Escolher da galeria
+        <button className="diagnostic-btn gallery" onClick={openGallery}>
+          🖼 Escolher da Galeria
         </button>
 
         <input
@@ -176,56 +140,40 @@ export default function DiagnosticoTab() {
         />
 
       </div>
-
     )
-
   }
 
   if (step === "camera") {
-
     return (
-
       <CameraView
         videoRef={videoRef}
         onCapture={capturePhoto}
-        onClose={reset}
+        onCancel={reset}
       />
-
     )
-
   }
 
   if (step === "preview") {
-
     return (
-
       <ImagePreview
         image={image}
         onBack={reset}
         onAnalyze={analyzeImage}
       />
-
     )
-
   }
 
   if (step === "analysis") {
-
     return <AnalysisLoader />
-
   }
 
   if (step === "result") {
-
     return (
-
       <DiagnosisResult
         result={result}
         onRestart={reset}
       />
-
     )
-
   }
 
 }
