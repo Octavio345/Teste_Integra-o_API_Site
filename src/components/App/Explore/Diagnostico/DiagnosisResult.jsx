@@ -40,7 +40,8 @@ export default function DiagnosisResult({ result, onRestart }) {
         </div>
 
       )}
-
+  
+      <br />
       <button className="btn restart" onClick={onRestart}>
         Novo Diagnóstico
       </button>
